@@ -1,0 +1,248 @@
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: #0e1a2b;
+    margin: 0;
+    color: #ffffff;
+    padding: 0;
+}
+
+header {
+    background-color: #091421;
+    text-align: center;
+    padding: 10px;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 0;
+    margin: 0;
+}
+
+nav ul li a {
+    color: #82d0ff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.hero {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    flex-wrap: wrap;
+}
+
+.bot-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 600px;
+}
+
+.bot {
+    position: relative;
+    width: 120px;
+    height: 180px;
+    background-color: #2e3b4e;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    animation: float 4s ease-in-out infinite;
+}
+
+.head {
+    width: 80px;
+    height: 60px;
+    background-color: #374c67;
+    border-radius: 40px;
+    margin: 10px auto;
+    position: relative;
+}
+
+.eye {
+    width: 12px;
+    height: 12px;
+    background: #4dd0e1;
+    border-radius: 50%;
+    position: absolute;
+    top: 20px;
+}
+
+.eye.left {
+    left: 15px;
+}
+
+.eye.right {
+    right: 15px;
+}
+
+.body {
+    position: relative;
+    height: 100px;
+    width: 100%;
+}
+
+.arm {
+    width: 15px;
+    height: 60px;
+    background: #374c67;
+    position: absolute;
+    top: 10px;
+    border-radius: 8px;
+}
+
+.arm:first-of-type {
+    left: -15px;
+}
+
+.arm:last-of-type {
+    right: -15px;
+}
+
+.arm.waving {
+    left: -15px;
+    transform-origin: top center;
+    animation: wave 2s infinite ease-in-out;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(20deg); }
+    50% { transform: rotate(-20deg); }
+    75% { transform: rotate(20deg); }
+}
+
+.text {
+    max-width: 400px;
+    text-align: center;
+}
+
+h1 {
+    color: #4dd0e1;
+}
+
+h2 {
+    color: #90caf9;
+}
+
+footer {
+    background-color: #091421;
+    text-align: center;
+    padding: 15px;
+}
+
+.bot-container-hover {
+    position: relative;
+    display: inline-block;
+}
+
+.bubble {
+    position: absolute;
+    bottom: 120%;
+    background-color: #1f2e45;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    font-size: 14px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.bot-container-hover:hover .bubble {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0px);
+}
+
+.chat-toggle {
+    margin-top: 30px;
+    padding: 12px 20px;
+    background-color: #4dd0e1;
+    border: none;
+    color: #000;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.chat-toggle:hover {
+    background-color: #29b6f6;
+}
+
+.chat-box {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 280px;
+    background-color: #1e2a38;
+    border-radius: 12px;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.chat-box.open {
+    display: flex;
+}
+
+.chat-header {
+    background-color: #263b50;
+    padding: 12px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+}
+
+.chat-messages {
+    padding: 10px;
+    height: 150px;
+    overflow-y: auto;
+    color: #fff;
+    font-size: 14px;
+}
+
+.message.bot {
+    background-color: #4dd0e1;
+    color: #000;
+    padding: 6px 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: inline-block;
+}
+
+.chat-input {
+    display: flex;
+    border-top: 1px solid #ccc;
+    background: #263b50;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: #1e2a38;
+    color: white;
+}
+
+.chat-input button {
+    padding: 10px 15px;
+    background: #4dd0e1;
+    border: none;
+    color: black;
+    cursor: not-allowed;
+}

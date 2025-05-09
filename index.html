@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>AI Bot - Interactive Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#">Contact</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Products</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="hero">
+            <div class="bot-container-hover" onclick="changeMessage()">
+                <div class="bubble" id="bubble-msg">Hello! I'm your smart assistant 🤖</div>
+                <div class="bot">
+                    <div class="head">
+                        <div class="eye left"></div>
+                        <div class="eye right"></div>
+                    </div>
+                    <div class="body">
+                        <div class="arm waving"></div>
+                        <div class="arm"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="text">
+                <h1>Welcome to the AI Assistant</h1>
+                <h2>AI Privacy & Terms</h2>
+                <p>
+                    This site uses an interactive AI bot that greets you and helps explain key information about privacy and terms of use.
+                    <br><br>
+                    🛡️ We only collect minimal usage data.<br>
+                    🔒 No advertising, no selling your info.<br>
+                    💡 The AI learns only from your interactions to enhance responses.<br>
+                    🎯 You stay in control of your experience.
+                </p>
+            </div>
+        <button class="chat-toggle" onclick="toggleChat()">Start Chat</button>
+        <div class="chat-box" id="chatBox">
+            <div class="chat-header">AI Assistant 🤖</div>
+            <div class="chat-messages">
+                <div class="message bot">Hello! How can I help you today?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" placeholder="Type your message..." disabled />
+                <button disabled>Send</button>
+            </div>
+        </div>
+    </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 AI Assistant. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const messages = [
+            "Hi again! Need any help? 😊",
+            "Tap me to learn more 💡",
+            "I’m happy to assist you! 🤝",
+            "Click me for AI privacy tips 🔐",
+            "Let’s explore together! 🌐"
+        ];
+        let msgIndex = 0;
+
+        function changeMessage() {
+            msgIndex = (msgIndex + 1) % messages.length;
+            document.getElementById("bubble-msg").textContent = messages[msgIndex];
+        }
+    
+        function toggleChat() {
+            const chat = document.getElementById("chatBox");
+            chat.classList.toggle("open");
+        }
+    </script>
+</body>
+</html>
