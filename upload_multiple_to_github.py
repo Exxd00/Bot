@@ -3,8 +3,8 @@ import requests
 import base64
 
 # إعداداتك
-GITHUB_TOKEN = os.getenv("GH_TOKEN")  # أو ضع التوكين مباشرة كنص
-REPO = "your-username/your-repo"      # مثال: Exxd00/Bot
+GITHUB_TOKEN = os.getenv("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")  # أو ضع التوكين مباشرة كنص
+REPO = "ُExxd00/Bot"      # مثال: Exxd00/Bot
 BRANCH = "main"
 FILES_TO_UPLOAD = {
     "index.html": "index.html",
