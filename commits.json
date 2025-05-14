@@ -1,0 +1,27 @@
+[
+  {
+    "message": "Update README",
+    "author": "Excd00",
+    "date": "2025-05-14T07:11:30Z"
+  },
+  {
+    "message": "Fix layout bug",
+    "author": "Excd00",
+    "date": "2025-05-13T21:33:14Z"
+  },
+  {
+    "message": "Add Arabic language support",
+    "author": "Excd00",
+    "date": "2025-05-13T19:02:45Z"
+  },
+  {
+    "message": "Improve performance",
+    "author": "Excd00",
+    "date": "2025-05-13T16:20:00Z"
+  },
+  {
+    "message": "Add unit tests",
+    "author": "Excd00",
+    "date": "2025-05-13T13:58:00Z"
+  }
+]
