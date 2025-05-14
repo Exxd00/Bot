@@ -1,5 +1,15 @@
-Flask
-requests
-openai
-PyGithub
-python-dotenv
+from pathlib import Path
+
+# إعادة توليد الملف بعد إعادة التشغيل
+libraries = [
+    "Flask",
+    "openai",
+    "requests",
+    "PyGithub",
+    "python-dotenv"
+]
+
+requirements_path = Path("/mnt/data/requirements.txt")
+requirements_path.write_text("\n".join(libraries))
+
+requirements_path.name
