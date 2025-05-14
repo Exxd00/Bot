@@ -40,7 +40,7 @@ def run_action():
                 })
 
             # تحليل التعديلات باستخدام GPT
-            prompt = "حلل لي التعديلات التالية":
+            prompt = "حل لي التسجيلات التالية:"
 " + "\n".join([c["message"] for c in result])
             response = openai_client.chat.completions.create(
                 model="gpt-4",
