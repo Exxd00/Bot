@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحديثات GitHub</title>
+    <style>
+        body {
+            font-family: Tahoma, sans-serif;
+            direction: rtl;
+            background: #f5f5f5;
+            padding: 2rem;
+            color: #222;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        .commit {
+            background: white;
+            border: 1px solid #ccc;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>📌 آخر التحديثات من مستودع GitHub</h1>
+    <div id="commits">
+        <p>⏳ يتم تحميل الكوميتات...</p>
+    </div>
+
+    <script>
+        fetch('https://bot-vgmf.onrender.com/run-action', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'super-secret-key-123'
+            },
+            body: JSON.stringify({ action: 'fetch_commits', repo: 'Bot' })
+        })
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('commits');
+                container.innerHTML = '';
+                data.result.slice(0, 5).forEach((commit, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'commit';
+                    div.innerHTML = `
+          <strong>🔹 كوميت ${index + 1}</strong><br>
+          <span class="date">📅 ${commit.date}</span><br>
+          <p>✏️ ${commit.message}</p>
+          <p>👤 ${commit.author}</p>
+        `;
+                    container.appendChild(div);
+                });
+            })
+            .catch(err => {
+                document.getElementById('commits').innerHTML = '<p>❌ حدث خطأ في جلب البيانات.</p>';
+                console.error(err);
+            });
+    </script>
+</body>
+
+</html>
