@@ -1,24 +1,25 @@
-from flask import Flask, request, jsonify
 import os
-import openai
 import requests
+from flask import Flask, request, jsonify
 from github import Github
+from openai import OpenAI  # ✅ واجهة OpenAI الحديثة
 
 app = Flask(__name__)
 
-# التأكد من وجود مفاتيح البيئة
+# مفاتيح البيئة
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 GH_TOKEN = os.environ.get("GH_TOKEN")
 GITHUB_USERNAME = "Exxd00"
 
+# تحقق من وجود المفاتيح
 if not GH_TOKEN:
-    raise EnvironmentError("❌ لم يتم العثور على GH_TOKEN في المتغيرات البيئية")
+    raise EnvironmentError("❌ لم يتم العثور على GH_TOKEN")
 if not OPENAI_API_KEY:
-    raise EnvironmentError("❌ لم يتم العثور على OPENAI_API_KEY في المتغيرات البيئية")
+    raise EnvironmentError("❌ لم يتم العثور على OPENAI_API_KEY")
 
-# تهيئة الاتصال بـ OpenAI و GitHub
+# تهيئة GitHub و OpenAI
 g = Github(GH_TOKEN)
-openai.api_key = OPENAI_API_KEY
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 @app.route("/run-action", methods=["POST"])
 def run_action():
@@ -35,29 +36,36 @@ def run_action():
                 result.append({
                     "message": commit.commit.message,
                     "author": commit.commit.author.name,
-                    "date": commit.commit.author.date.strftime("%Y-%m-%d")
+                    "date": commit.commit.author.date.isoformat()
                 })
 
-            prompt = f"حلل لي التعديلات التالية:\n" + "\n".join([c["message"] for c in result])
-            gpt_response = openai.ChatCompletion.create(
+            # تحليل التعديلات باستخدام GPT
+            prompt = "حلل لي التعديلات التالية:
+" + "\n".join([c["message"] for c in result])
+            response = openai_client.chat.completions.create(
                 model="gpt-4",
                 messages=[{"role": "user", "content": prompt}]
             )
-            return jsonify({"result": result, "gpt_analysis": gpt_response["choices"][0]["message"]["content"]})
+            gpt_reply = response.choices[0].message.content
+            return jsonify({"commits": result, "gpt_analysis": gpt_reply})
 
-        # باقي الأوامر (كما هي في ملفك السابق)
-        # create_repo, update_file, create_branch, etc...
+        elif action == "chat_with_openai":
+            prompt = data.get("prompt", "اكتب شيئاً")
+            completion = openai_client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return jsonify({"reply": completion.choices[0].message.content})
 
         else:
-            return jsonify({"error": "Invalid action."}), 400
+            return jsonify({"error": "الإجراء غير معروف"}), 400
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route("/", methods=["GET"])
 def home():
-    return "✅ الوسيط يعمل ومتصِل بـ GPT و GitHub."
+    return "✅ الخادم يعمل باستخدام OpenAI v1.0+"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
