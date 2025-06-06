@@ -1,73 +1,73 @@
 import os
-import requests
 from flask import Flask, request, jsonify
 from github import Github
-from openai import OpenAI  # ✅ واجهة OpenAI الحديثة
+import openai
 
 app = Flask(__name__)
 
-# مفاتيح البيئة
+# إعداد المفاتيح
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-GH_TOKEN = os.environ.get("GH_TOKEN")
-GITHUB_USERNAME = "Exxd00"
+GH_TOKEN = os.environ.get("GITHUB_TOKEN")
+GITHUB_USERNAME = "Exxd00"  # اسم المستخدم الخاص بك على GitHub
 
-# تحقق من وجود المفاتيح
-if not GH_TOKEN:
-    raise EnvironmentError("❌ لم يتم العثور على GH_TOKEN")
-if not OPENAI_API_KEY:
-    raise EnvironmentError("❌ لم يتم العثور على OPENAI_API_KEY")
-
-# تهيئة GitHub و OpenAI
 g = Github(GH_TOKEN)
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
+openai.api_key = OPENAI_API_KEY
+
 
 @app.route("/run-action", methods=["POST"])
 def run_action():
     data = request.json
     action = data.get("action")
+    repo_name = data.get("repo")
 
     try:
         if action == "fetch_commits":
-            repo_name = data.get("repo")
             repo = g.get_user().get_repo(repo_name)
             commits = repo.get_commits()[:5]
-            result = []
-            for commit in commits:
-                result.append({
-                    "message": commit.commit.message,
-                    "author": commit.commit.author.name,
-                    "date": commit.commit.author.date.isoformat()
-                })
-            return jsonify(result)
-
-        elif action == "list_files":
-            repo_name = data.get("repo")
-            repo = g.get_user().get_repo(repo_name)
-            contents = repo.get_contents("")
-            file_list = []
-            while contents:
-                file_content = contents.pop(0)
-                if file_content.type == "dir":
-                    contents.extend(repo.get_contents(file_content.path))
-                else:
-                    file_list.append(file_content.path)
-            return jsonify({"files": file_list})
+            result = [f"{commit.commit.author.name}: {commit.commit.message}" for commit in commits]
+            return jsonify({"result": result})
 
         elif action == "get_file":
-            repo_name = data.get("repo")
             file_path = data.get("file_path")
             repo = g.get_user().get_repo(repo_name)
             file_content = repo.get_contents(file_path)
-            decoded_content = file_content.decoded_content.decode("utf-8")
-            return jsonify({"path": file_path, "content": decoded_content})
+            return jsonify({"file_path": file_path, "content": file_content.decoded_content.decode()})
+
+        elif action == "update_file":
+            file_path = data.get("file_path")
+            new_content = data.get("content")
+            commit_msg = data.get("commit_message", "update via API")
+            repo = g.get_user().get_repo(repo_name)
+            file = repo.get_contents(file_path)
+            repo.update_file(file.path, commit_msg, new_content, file.sha)
+            return jsonify({"message": f"{file_path} updated successfully"})
+
+        elif action == "analyze_repo":
+            repo = g.get_user().get_repo(repo_name)
+            files = repo.get_contents("")
+            results = []
+
+            for file in files:
+                if file.type == "file" and file.name.endswith((".py", ".js", ".html", ".md")):
+                    content = file.decoded_content.decode()
+                    prompt = f"حلل لي التعديلات التالية:\n\n{content[:1500]}"
+                    response = openai.ChatCompletion.create(
+                        model="gpt-4",
+                        messages=[{"role": "user", "content": prompt}],
+                        temperature=0.4,
+                        max_tokens=300
+                    )
+                    summary = response.choices[0].message.content.strip()
+                    results.append({"file": file.name, "summary": summary})
+
+            return jsonify({"analysis": results})
 
         else:
-            return jsonify({"error": "Unknown action"}), 400
+            return jsonify({"error": f"Action '{action}' غير مدعوم"}), 400
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ✅ لتشغيل الخادم على Render
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True)
