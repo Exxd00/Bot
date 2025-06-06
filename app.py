@@ -1,71 +1,56 @@
 import os
-import requests
 from flask import Flask, request, jsonify
 from github import Github
-from openai import OpenAI  # ✅ واجهة OpenAI الحديثة
+from dotenv import load_dotenv
 
+# تحميل متغيرات البيئة
+load_dotenv()
+
+# إعداد Flask
 app = Flask(__name__)
 
-# مفاتيح البيئة
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-GH_TOKEN = os.environ.get("GH_TOKEN")
-GITHUB_USERNAME = "Exxd00"
+# متغيرات البيئة
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GH_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_USERNAME = os.getenv("GITHUB_USERNAME", "Exxd00")
 
-# تحقق من وجود المفاتيح
-if not GH_TOKEN:
-    raise EnvironmentError("❌ لم يتم العثور على GH_TOKEN")
-if not OPENAI_API_KEY:
-    raise EnvironmentError("❌ لم يتم العثور على OPENAI_API_KEY")
-
-# تهيئة GitHub و OpenAI
+# تهيئة GitHub
 g = Github(GH_TOKEN)
-openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 @app.route("/run-action", methods=["POST"])
 def run_action():
     data = request.json
     action = data.get("action")
+    repo_name = data.get("repo")
 
     try:
-        if action == "fetch_commits":
-            repo_name = data.get("repo")
-            repo = g.get_user().get_repo(repo_name)
+        if not action or not repo_name:
+            return jsonify({"error": "يرجى إرسال action و repo"}), 400
+
+        repo = g.get_user().get_repo(repo_name)
+
+        if action == "list_files":
+            contents = repo.get_contents("")
+            files = [file.name for file in contents]
+            return jsonify({"files": files})
+
+        elif action == "fetch_commits":
             commits = repo.get_commits()[:5]
-            result = []
-            for commit in commits:
-                result.append({
+            result = [
+                {
                     "message": commit.commit.message,
                     "author": commit.commit.author.name,
-                    "date": commit.commit.author.date.isoformat()
-                })
-
-            # تحليل التعديلات باستخدام GPT
-            prompt = "حل لي التسجيلات التالية:"
-" + "\n".join([c["message"] for c in result])
-            response = openai_client.chat.completions.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            gpt_reply = response.choices[0].message.content
-            return jsonify({"commits": result, "gpt_analysis": gpt_reply})
-
-        elif action == "chat_with_openai":
-            prompt = data.get("prompt", "اكتب شيئاً")
-            completion = openai_client.chat.completions.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            return jsonify({"reply": completion.choices[0].message.content})
+                    "date": commit.commit.author.date.isoformat(),
+                }
+                for commit in commits
+            ]
+            return jsonify({"commits": result})
 
         else:
-            return jsonify({"error": "الإجراء غير معروف"}), 400
+            return jsonify({"error": f"الإجراء '{action}' غير مدعوم"}), 400
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/", methods=["GET"])
-def home():
-    return "✅ الخادم يعمل باستخدام OpenAI v1.0+"
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True)
