@@ -5,14 +5,13 @@ import openai
 
 app = Flask(__name__)
 
-# إعداد المفاتيح
+# إعداد المفاتيح من المتغيرات البيئية
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 GH_TOKEN = os.environ.get("GITHUB_TOKEN")
-GITHUB_USERNAME = "Exxd00"  # غيّره لاسم المستخدم الخاص بك
+GITHUB_USERNAME = "Exxd00"  # غيّره إذا كنت تستخدم اسم مستخدم مختلف
 
 g = Github(GH_TOKEN)
 openai.api_key = OPENAI_API_KEY
-
 
 @app.route("/run-action", methods=["POST"])
 def run_action():
@@ -43,7 +42,6 @@ def run_action():
             return jsonify({"message": f"{file_path} updated successfully"})
 
         elif action == "create_repo":
-            repo_name = data.get("repo")
             description = data.get("description", "")
             private = data.get("private", False)
             repo = g.get_user().create_repo(name=repo_name, description=description, private=private)
@@ -74,6 +72,5 @@ def run_action():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000, debug=True)
