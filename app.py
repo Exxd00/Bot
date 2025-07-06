@@ -8,7 +8,6 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ملف حفظ التوكنات
 TOKENS_FILE_PATH = os.path.join("data", "tokens.json")
 if os.path.exists(TOKENS_FILE_PATH):
     with open(TOKENS_FILE_PATH, "r") as f:
@@ -132,9 +131,9 @@ def run_action():
             template = data.get("template", None)
 
             user = g.get_user()
-
             new_repo = user.create_repo(repo_name, private=private)
 
+            # Initialize with README
             readme_content = f"# {repo_name}\n\nCreated via API"
             blob = new_repo.create_git_blob(readme_content, "utf-8")
             tree = new_repo.create_git_tree([{
@@ -147,6 +146,7 @@ def run_action():
             new_repo.create_git_ref(ref='refs/heads/main', sha=commit.sha)
             new_repo.edit(default_branch="main")
 
+            # Upload template files
             if template:
                 template_path = os.path.join("templates", "menu", template)
                 if os.path.exists(template_path):
@@ -158,11 +158,26 @@ def run_action():
 
                             relative_path = os.path.relpath(full_path, template_path).replace("\\", "/")
                             try:
-                                new_repo.create_file(relative_path, f"Add {relative_path}", file_content, branch="main")
-                            except Exception as e:
-                                print(f"خطأ أثناء رفع الملف {relative_path}: {e}")
+                                existing_file = new_repo.get_contents(relative_path, ref="main")
+                                new_repo.update_file(
+                                    existing_file.path,
+                                    f"Update {relative_path}",
+                                    file_content,
+                                    existing_file.sha,
+                                    branch="main"
+                                )
+                            except:
+                                try:
+                                    new_repo.create_file(
+                                        relative_path,
+                                        f"Add {relative_path}",
+                                        file_content,
+                                        branch="main"
+                                    )
+                                except Exception as e:
+                                    print(f"⚠️ خطأ أثناء رفع {relative_path}: {e}")
 
-            # Log
+            # Log the action
             log_entry = {
                 "timestamp": datetime.utcnow().isoformat(),
                 "action": "create_repo",
