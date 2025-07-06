@@ -3,6 +3,7 @@ import json
 from flask import Flask, request, jsonify, send_from_directory
 from github import Github
 import openai
+from base64 import b64encode
 
 app = Flask(__name__)
 
@@ -66,18 +67,10 @@ def run_action():
             else:
                 return jsonify({"error": "Template not found"}), 404
 
-        elif action == "get_repo_info":
-            repo_obj = g.get_user().get_repo(repo)
-            repo_data = {
-                "name": repo_obj.name,
-                "description": repo_obj.description,
-                "created_at": str(repo_obj.created_at),
-                "updated_at": str(repo_obj.updated_at),
-                "default_branch": repo_obj.default_branch,
-                "file_count": len(repo_obj.get_contents("")),
-                "url": repo_obj.html_url
-            }
-            return jsonify(repo_data)
+        elif action == "list_repo_names_only":
+            user = g.get_user()
+            repos = [repo.name for repo in user.get_repos()]
+            return jsonify({"repos": repos})
 
         elif action == "list_files":
             repo_obj = g.get_user().get_repo(repo)
@@ -108,6 +101,34 @@ def run_action():
             repo_obj = g.get_user().get_repo(repo)
             commits = repo_obj.get_commits()[:limit]
             return jsonify({"commits": [c.sha for c in commits]})
+
+        elif action == "init_repo_if_empty":
+            repo_obj = g.get_user().get_repo(repo)
+            try:
+                # Check if default branch exists (repo already initialized)
+                _ = repo_obj.get_branch(repo_obj.default_branch)
+                return jsonify({"message": "Repo already initialized."})
+            except:
+                # Repo is empty → initialize it
+                readme_content = "# Initial Commit\n\nThis repo was initialized via API."
+                blob = repo_obj.create_git_blob(readme_content, "utf-8")
+
+                tree = repo_obj.create_git_tree([{
+                    "path": "README.md",
+                    "mode": "100644",
+                    "type": "blob",
+                    "sha": blob.sha
+                }], base_tree=None)
+
+                commit = repo_obj.create_git_commit("Initial commit", tree, [])
+
+                # Create main branch
+                repo_obj.create_git_ref(ref='refs/heads/main', sha=commit.sha)
+
+                # Set default branch to main
+                repo_obj.edit(default_branch="main")
+
+                return jsonify({"message": "Repo initialized with first commit on 'main'"})
 
         return jsonify({"error": "Unknown action"}), 400
 
