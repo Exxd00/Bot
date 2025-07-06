@@ -6,23 +6,19 @@ import openai
 
 app = Flask(__name__)
 
-# المسار إلى ملف التوكنات
+# ملف حفظ التوكنات
 TOKENS_FILE_PATH = os.path.join("data", "tokens.json")
-
-# تحميل التوكنات من الملف (إن وجدت)
 if os.path.exists(TOKENS_FILE_PATH):
     with open(TOKENS_FILE_PATH, "r") as f:
         TEMP_TOKENS = json.load(f)
 else:
     TEMP_TOKENS = {}
 
-# دالة حفظ التوكنات
 def save_tokens():
     os.makedirs("data", exist_ok=True)
     with open(TOKENS_FILE_PATH, "w") as f:
         json.dump(TEMP_TOKENS, f)
 
-# دالة جلب التوكن
 def get_token(name):
     return TEMP_TOKENS.get(name) or os.environ.get(name)
 
@@ -30,6 +26,10 @@ def get_token(name):
 def run_action():
     data = request.get_json()
     action = data.get("action")
+    repo = data.get("repo")
+    path = data.get("path")
+    content = data.get("content")
+    token = get_token("GITHUB_TOKEN")
     api_key = request.headers.get("x-api-key")
 
     if api_key != os.environ.get("API_KEY", "super-secret-key-123"):
@@ -53,12 +53,6 @@ def run_action():
                 save_tokens()
             return jsonify({"message": f"{token_type} removed."})
 
-        elif action == "set_github_token":
-            token_value = data.get("token")
-            TEMP_TOKENS["GH_TOKEN"] = token_value
-            save_tokens()
-            return jsonify({"message": "GitHub token saved successfully."})
-
         elif action == "generate_canva_link":
             template = data.get("template")
             links = {
@@ -66,12 +60,42 @@ def run_action():
             }
             link = links.get(template)
             if link:
-                return jsonify({
-                    "link": link,
-                    "note": "Edit the SMM Strategy template manually in Canva. Direct content injection is not supported."
-                })
+                return jsonify({"link": link, "note": "Edit manually in Canva."})
             else:
-                return jsonify({"error": "Template not found."}), 404
+                return jsonify({"error": "Template not found"}), 404
+
+        elif action == "list_repo_names_only":
+            g = Github(token)
+            user = g.get_user()
+            repos = [repo.name for repo in user.get_repos()]
+            return jsonify({"repos": repos})
+
+        elif action == "list_files":
+            g = Github(token)
+            repo = g.get_user().get_repo(repo)
+            contents = repo.get_contents("")
+            file_names = [c.name for c in contents]
+            return jsonify({"files": file_names})
+
+        elif action == "get_file":
+            g = Github(token)
+            repo = g.get_user().get_repo(repo)
+            file = repo.get_contents(path)
+            return jsonify({"content": file.decoded_content.decode()})
+
+        elif action == "update_file":
+            g = Github(token)
+            repo_obj = g.get_user().get_repo(repo)
+            file = repo_obj.get_contents(path)
+            repo_obj.update_file(file.path, "update via API", content, file.sha)
+            return jsonify({"message": "File updated"})
+
+        elif action == "fetch_limited_commits":
+            limit = data.get("limit", 10)
+            g = Github(token)
+            repo_obj = g.get_user().get_repo(repo)
+            commits = repo_obj.get_commits()[:limit]
+            return jsonify({"commits": [c.sha for c in commits]})
 
         return jsonify({"error": "Unknown action"}), 400
 
