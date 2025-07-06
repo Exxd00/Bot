@@ -1,0 +1,104 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GPT GitHub Proxy",
+    "version": "1.0.0",
+    "description": "وسيط يربط GPT مع GitHub لتنفيذ أوامر مثل إنشاء مستودعات وتحديث ملفات..."
+  },
+  "servers": [
+    {
+      "url": "https://bot-vgmf.onrender.com"
+    }
+  ],
+  "paths": {
+    "/run-action": {
+      "post": {
+        "summary": "تنفيذ أمر GitHub",
+        "operationId": "runAction",
+        "requestBody": {
+          "description": "كائن JSON يحتوي على نوع الإجراء والمستودع والخيارات",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "تم تنفيذ الأمر بنجاح",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RunActionRequest": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "create_repo",
+              "update_file",
+              "fetch_commits",
+              "create_branch",
+              "create_issue",
+              "list_files",
+              "delete_repo",
+              "get_repo_info"
+            ],
+            "description": "نوع الإجراء المطلوب"
+          },
+          "repo": {
+            "type": "string",
+            "description": "اسم مستودع GitHub"
+          },
+          "file": {
+            "type": "string",
+            "description": "اسم الملف المطلوب تعديله (اختياري)"
+          },
+          "content": {
+            "type": "string",
+            "description": "المحتوى الجديد للملف (إن وجد)"
+          },
+          "message": {
+            "type": "string",
+            "description": "رسالة الكوميت عند تعديل ملف"
+          },
+          "template": {
+            "type": "string",
+            "description": "اسم القالب عند إنشاء مستودع"
+          },
+          "title": {
+            "type": "string",
+            "description": "عنوان التذكرة (Issue)"
+          },
+          "body": {
+            "type": "string",
+            "description": "محتوى التذكرة (Issue body)"
+          }
+        },
+        "required": ["action", "repo"]
+      }
+    }
+  }
+}
