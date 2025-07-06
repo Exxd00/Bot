@@ -22,13 +22,6 @@ def save_tokens():
 def get_token(name):
     return TEMP_TOKENS.get(name) or os.environ.get(name)
 
-def initialize_repo(repo_obj):
-    """تهيئة المستودع بملف README.md إذا كان فارغًا"""
-    try:
-        repo_obj.create_file("README.md", "Initial commit", "# Initialized")
-    except Exception:
-        pass  # المستودع قد يكون مهيأ بالفعل
-
 @app.route("/run-action", methods=["POST"])
 def run_action():
     data = request.get_json()
@@ -73,10 +66,18 @@ def run_action():
             else:
                 return jsonify({"error": "Template not found"}), 404
 
-        elif action == "list_repo_names_only":
-            user = g.get_user()
-            repos = [repo.name for repo in user.get_repos()]
-            return jsonify({"repos": repos})
+        elif action == "get_repo_info":
+            repo_obj = g.get_user().get_repo(repo)
+            repo_data = {
+                "name": repo_obj.name,
+                "description": repo_obj.description,
+                "created_at": str(repo_obj.created_at),
+                "updated_at": str(repo_obj.updated_at),
+                "default_branch": repo_obj.default_branch,
+                "file_count": len(repo_obj.get_contents("")),
+                "url": repo_obj.html_url
+            }
+            return jsonify(repo_data)
 
         elif action == "list_files":
             repo_obj = g.get_user().get_repo(repo)
@@ -100,12 +101,7 @@ def run_action():
                     repo_obj.create_file(path, "create via API", content)
                     return jsonify({"message": "File created"})
                 except Exception as ex:
-                    try:
-                        initialize_repo(repo_obj)
-                        repo_obj.create_file(path, "create after init", content)
-                        return jsonify({"message": "File created after init"})
-                    except Exception as final_ex:
-                        return jsonify({"error": f"Final create failed: {str(final_ex)}"}), 500
+                    return jsonify({"error": f"Create failed: {str(ex)}"}), 500
 
         elif action == "fetch_limited_commits":
             limit = data.get("limit", 10)
