@@ -80,20 +80,15 @@ def run_action():
 
         elif action == "get_file":
             repo_obj = g.get_user().get_repo(repo)
-            file = repo_obj.get_contents(path)
+            file = repo_obj.get_contents(data.get("file"))
             return jsonify({"content": file.decoded_content.decode()})
 
         elif action == "update_file":
             repo_obj = g.get_user().get_repo(repo)
             try:
-                # قراءة الملف الحالي
                 file = repo_obj.get_contents(path)
                 old_content = file.decoded_content.decode("utf-8")
-
-                # دمج المحتوى الجديد فوق القديم (يمكن تعديله حسب الحاجة)
                 new_content = content + "\n\n" + old_content
-
-                # التحديث
                 repo_obj.update_file(file.path, "Merged update via API", new_content, file.sha)
                 return jsonify({"message": "File updated with merged content"})
             except Exception as e:
@@ -117,19 +112,15 @@ def run_action():
             except:
                 readme_content = "# Initial Commit\n\nThis repo was initialized via API."
                 blob = repo_obj.create_git_blob(readme_content, "utf-8")
-
                 tree = repo_obj.create_git_tree([{
                     "path": "README.md",
                     "mode": "100644",
                     "type": "blob",
                     "sha": blob.sha
                 }], base_tree=None)
-
                 commit = repo_obj.create_git_commit("Initial commit", tree, [])
-
                 repo_obj.create_git_ref(ref='refs/heads/main', sha=commit.sha)
                 repo_obj.edit(default_branch="main")
-
                 return jsonify({"message": "Repo initialized with first commit on 'main'"})
 
         elif action == "create_repo":
@@ -160,7 +151,6 @@ def run_action():
                             full_path = os.path.join(root, filename)
                             with open(full_path, "r", encoding="utf-8") as f:
                                 file_content = f.read()
-
                             relative_path = os.path.relpath(full_path, template_path).replace("\\", "/")
                             try:
                                 existing_file = new_repo.get_contents(relative_path, ref="main")
