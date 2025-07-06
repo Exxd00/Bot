@@ -86,9 +86,13 @@ def run_action():
         elif action == "update_file":
             g = Github(token)
             repo_obj = g.get_user().get_repo(repo)
-            file = repo_obj.get_contents(path)
-            repo_obj.update_file(file.path, "update via API", content, file.sha)
-            return jsonify({"message": "File updated"})
+            try:
+                file = repo_obj.get_contents(path)
+                repo_obj.update_file(file.path, "update via API", content, file.sha)
+                return jsonify({"message": "File updated"})
+            except:
+                repo_obj.create_file(path, "create via API", content)
+                return jsonify({"message": "File created"})
 
         elif action == "fetch_limited_commits":
             limit = data.get("limit", 10)
