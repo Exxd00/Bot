@@ -36,6 +36,8 @@ def run_action():
         return jsonify({"error": "Unauthorized"}), 403
 
     try:
+        g = Github(token)
+
         if action == "status_check":
             return jsonify({"status": "ok"})
 
@@ -65,38 +67,36 @@ def run_action():
                 return jsonify({"error": "Template not found"}), 404
 
         elif action == "list_repo_names_only":
-            g = Github(token)
             user = g.get_user()
             repos = [repo.name for repo in user.get_repos()]
             return jsonify({"repos": repos})
 
         elif action == "list_files":
-            g = Github(token)
-            repo = g.get_user().get_repo(repo)
-            contents = repo.get_contents("")
+            repo_obj = g.get_user().get_repo(repo)
+            contents = repo_obj.get_contents("")
             file_names = [c.name for c in contents]
             return jsonify({"files": file_names})
 
         elif action == "get_file":
-            g = Github(token)
-            repo = g.get_user().get_repo(repo)
-            file = repo.get_contents(path)
+            repo_obj = g.get_user().get_repo(repo)
+            file = repo_obj.get_contents(path)
             return jsonify({"content": file.decoded_content.decode()})
 
         elif action == "update_file":
-            g = Github(token)
             repo_obj = g.get_user().get_repo(repo)
             try:
                 file = repo_obj.get_contents(path)
                 repo_obj.update_file(file.path, "update via API", content, file.sha)
                 return jsonify({"message": "File updated"})
-            except:
-                repo_obj.create_file(path, "create via API", content)
-                return jsonify({"message": "File created"})
+            except Exception as e:
+                try:
+                    repo_obj.create_file(path, "create via API", content)
+                    return jsonify({"message": "File created"})
+                except Exception as ex:
+                    return jsonify({"error": f"Create failed: {str(ex)}"}), 500
 
         elif action == "fetch_limited_commits":
             limit = data.get("limit", 10)
-            g = Github(token)
             repo_obj = g.get_user().get_repo(repo)
             commits = repo_obj.get_commits()[:limit]
             return jsonify({"commits": [c.sha for c in commits]})
