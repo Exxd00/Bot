@@ -75,3 +75,8 @@ def run_action():
 @app.route("/docs")
 def serve_docs():
     return send_from_directory("docs", "index.html")
+
+# ✅ هذا السطر لتشغيل السيرفر على Render
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
