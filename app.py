@@ -16,13 +16,13 @@ if os.path.exists(TOKENS_FILE_PATH):
 else:
     TEMP_TOKENS = {}
 
-# الدوال المساعدة لحفظ التوكنات
+# دالة حفظ التوكنات
 def save_tokens():
     os.makedirs("data", exist_ok=True)
     with open(TOKENS_FILE_PATH, "w") as f:
         json.dump(TEMP_TOKENS, f)
 
-# جلب التوكنات
+# دالة جلب التوكن
 def get_token(name):
     return TEMP_TOKENS.get(name) or os.environ.get(name)
 
@@ -53,6 +53,12 @@ def run_action():
                 save_tokens()
             return jsonify({"message": f"{token_type} removed."})
 
+        elif action == "set_github_token":
+            token_value = data.get("token")
+            TEMP_TOKENS["GH_TOKEN"] = token_value
+            save_tokens()
+            return jsonify({"message": "GitHub token saved successfully."})
+
         elif action == "generate_canva_link":
             template = data.get("template")
             links = {
@@ -66,40 +72,6 @@ def run_action():
                 })
             else:
                 return jsonify({"error": "Template not found."}), 404
-
-        elif action == "list_user_repos":
-            gh_token = get_token("GH_TOKEN")
-            if not gh_token:
-                return jsonify({"error": "GitHub token not set."}), 400
-            g = Github(gh_token)
-            user = g.get_user()
-            repos = [{"name": repo.name, "full_name": repo.full_name} for repo in user.get_repos()]
-            return jsonify({"repos": repos})
-
-        elif action == "upload_file_to_repo":
-            gh_token = get_token("GH_TOKEN")
-            if not gh_token:
-                return jsonify({"error": "GitHub token not set."}), 400
-
-            repo_name = data.get("repo")
-            file_path = data.get("path")
-            file_content = data.get("content")
-            commit_message = data.get("message", "Upload file")
-
-            if not all([repo_name, file_path, file_content]):
-                return jsonify({"error": "Missing parameters: repo, path, or content"}), 400
-
-            g = Github(gh_token)
-            repo = g.get_repo(repo_name)
-
-            # تحقق مما إذا كان الملف موجودًا مسبقًا
-            try:
-                existing_file = repo.get_contents(file_path)
-                repo.update_file(file_path, commit_message, file_content, existing_file.sha)
-                return jsonify({"message": "File updated successfully."})
-            except:
-                repo.create_file(file_path, commit_message, file_content)
-                return jsonify({"message": "File created successfully."})
 
         return jsonify({"error": "Unknown action"}), 400
 
