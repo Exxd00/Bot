@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocktails</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #111;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            font-size: 24px;
+            color: gold;
+            z-index: 10;
+        }
+        .back-button {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 8px 18px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            backdrop-filter: blur(3px);
+        }
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+        .image-container {
+            margin-top: 90px;
+            height: 85vh;
+            overflow-y: auto;
+            display: flex;
+            justify-content: center;
+        }
+        .image-container img {
+            width: auto;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        Cocktails<br>
+        <a href="index.html" class="back-button">Zurück zur Hauptseite</a>
+    </div>
+    <div class="image-container">
+        <img src="assets/images/Cocktails.jpg" alt="Cocktails">
+    </div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Süßigkeiten</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: url('assets/images/Background.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+        .header {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            font-size: 24px;
+            color: gold;
+        }
+        .back-button {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            backdrop-filter: blur(3px);
+        }
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+        .image-container {
+            margin: 20px auto;
+            display: flex;
+            justify-content: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">Süßigkeiten</div>
+    <a href="index.html" class="back-button">Zurück zur Hauptseite</a>
+    <div class="image-container">
+        <img src="assets/images/Süßigkeiten.jpg" alt="Süßigkeiten">
+    </div>
+</body>
+</html>
