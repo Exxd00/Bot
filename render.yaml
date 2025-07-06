@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: gpt-bot
+    env: python
+    buildCommand: ""
+    startCommand: python app.py
+    plan: free
+    envVars:
+      - key: API_KEY
+        value: super-secret-key-123
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GITHUB_TOKEN
+        sync: false
