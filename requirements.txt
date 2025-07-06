@@ -2,3 +2,47 @@ Flask
 PyGithub
 openai
 pillow
+scapy           # تحليل وإنشاء حزم الشبكة
+requests        # إرسال واستقبال طلبات HTTP
+socket          # التعامل مع TCP/UDP sockets
+argparse        # التعامل مع معطيات سطر الأوامر
+pwntools        # مكتبة استغلالات CTF
+paramiko        # SSH - تنفيذ أوامر عن بعد
+impacket        # SMB / NTLM / LDAP / Kerberos
+pycrypto        # مكتبة تشفير قديمة
+cryptography    # مكتبة حديثة للتشفير
+subprocess      # تنفيذ أوامر النظام
+os              # وظائف نظام التشغيل
+nmap            # مع مكتبة python-nmap للتحكم في nmap
+bs4             # مكتبة BeautifulSoup لتحليل صفحات HTML
+shodan          # واجهة برمجية لخدمة Shodan
+colorama        # تلوين النصوص في التيرمنال
+uuid            # إنشاء معرفات فريدة
+json            # قراءة وكتابة JSON
+time            # التعامل مع الوقت والتأخير
+hashlib         # التشفير باستخدام MD5/SHA
+base64          # الترميز إلى Base64 وفكه
+random          # توليد أرقام أو سلاسل عشوائية
+re              # التعبيرات النمطية Regex
+libpcap-dev             # مكتبة تحليل الحزم (مثل Wireshark)
+libssl-dev              # OpenSSL للتشفير والاتصالات الآمنة
+libcurl4-openssl-dev    # مكتبة CURL للاتصال بالشبكات
+libnetfilter-queue-dev  # اعتراض ومعالجة الحزم من iptables
+libnl-3-dev             # مكتبة التحكم في الشبكات اللاسلكية
+libncurses5-dev         # واجهات طرفية تفاعلية (مثل برامج التيرمنال)
+libev-dev               # Event loop library
+libsqlite3-dev          # دعم قواعد بيانات SQLite
+libz-dev (zlib1g-dev)   # الضغط وفك الضغط
+libreadline-dev         # دعم أسطر الأوامر التفاعلية
+libusb-1.0-0-dev        # التعامل مع منافذ USB
+# مكتبات Ruby الشائعة في أدوات Metasploit:
+rex            # مكتبة أساسية في إطار Metasploit
+msf-core       # نواة إطار Metasploit
+net-ssh        # التحكم في SSH عبر Ruby
+packetfu       # مكتبة تحليل الحزم بالروبي
+metasm         # محرك لتجميع وتحليل الثنائيات
+sudo apt install golang -y
+github.com/OWASP/Amass            # جمع معلومات DNS
+github.com/ffuf/ffuf              # اكتشاف المسارات (fuzzing)
+github.com/projectdiscovery/naabu # فحص المنافذ
+github.com/projectdiscovery/subfinder # اكتشاف النطاقات الفرعية
