@@ -31,5 +31,3 @@ libnetfilter-queue-dev
 libnl-3-dev
 libncurses5-dev
 libev-dev
-github.com/projectdiscovery/naabu
-github.com/projectdiscovery/subfinder
