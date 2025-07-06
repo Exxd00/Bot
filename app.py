@@ -22,6 +22,13 @@ def save_tokens():
 def get_token(name):
     return TEMP_TOKENS.get(name) or os.environ.get(name)
 
+def initialize_repo(repo_obj):
+    """تهيئة المستودع بملف README.md إذا كان فارغًا"""
+    try:
+        repo_obj.create_file("README.md", "Initial commit", "# Initialized")
+    except Exception:
+        pass  # المستودع قد يكون مهيأ بالفعل
+
 @app.route("/run-action", methods=["POST"])
 def run_action():
     data = request.get_json()
@@ -93,7 +100,12 @@ def run_action():
                     repo_obj.create_file(path, "create via API", content)
                     return jsonify({"message": "File created"})
                 except Exception as ex:
-                    return jsonify({"error": f"Create failed: {str(ex)}"}), 500
+                    try:
+                        initialize_repo(repo_obj)
+                        repo_obj.create_file(path, "create after init", content)
+                        return jsonify({"message": "File created after init"})
+                    except Exception as final_ex:
+                        return jsonify({"error": f"Final create failed: {str(final_ex)}"}), 500
 
         elif action == "fetch_limited_commits":
             limit = data.get("limit", 10)
