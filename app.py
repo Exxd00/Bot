@@ -16,7 +16,7 @@ if os.path.exists(TOKENS_FILE_PATH):
 else:
     TEMP_TOKENS = {}
 
-# الدوال المساعدة لحفظ التوكنات
+# دوال المساعدة لحفظ التوكنات
 def save_tokens():
     os.makedirs("data", exist_ok=True)
     with open(TOKENS_FILE_PATH, "w") as f:
@@ -67,6 +67,16 @@ def run_action():
             else:
                 return jsonify({"error": "Template not found."}), 404
 
+        elif action == "list_repo_names_only":
+            gh_token = get_token("GH_TOKEN")
+            if not gh_token:
+                return jsonify({"error": "GitHub token not set."}), 400
+
+            g = Github(gh_token)
+            repos = g.get_user().get_repos()
+            repo_names = [repo.name for repo in repos]
+            return jsonify({"repos": repo_names})
+
         return jsonify({"error": "Unknown action"}), 400
 
     except Exception as e:
@@ -76,7 +86,7 @@ def run_action():
 def serve_docs():
     return send_from_directory("docs", "index.html")
 
-# ✅ هذا السطر لتشغيل السيرفر على Render
+# ✅ لتشغيل التطبيق على Render:
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
