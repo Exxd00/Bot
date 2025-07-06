@@ -86,9 +86,16 @@ def run_action():
         elif action == "update_file":
             repo_obj = g.get_user().get_repo(repo)
             try:
+                # قراءة الملف الحالي
                 file = repo_obj.get_contents(path)
-                repo_obj.update_file(file.path, "update via API", content, file.sha)
-                return jsonify({"message": "File updated"})
+                old_content = file.decoded_content.decode("utf-8")
+
+                # دمج المحتوى الجديد فوق القديم (يمكن تعديله حسب الحاجة)
+                new_content = content + "\n\n" + old_content
+
+                # التحديث
+                repo_obj.update_file(file.path, "Merged update via API", new_content, file.sha)
+                return jsonify({"message": "File updated with merged content"})
             except Exception as e:
                 try:
                     repo_obj.create_file(path, "create via API", content)
@@ -133,7 +140,6 @@ def run_action():
             user = g.get_user()
             new_repo = user.create_repo(repo_name, private=private)
 
-            # Initialize with README
             readme_content = f"# {repo_name}\n\nCreated via API"
             blob = new_repo.create_git_blob(readme_content, "utf-8")
             tree = new_repo.create_git_tree([{
@@ -146,7 +152,6 @@ def run_action():
             new_repo.create_git_ref(ref='refs/heads/main', sha=commit.sha)
             new_repo.edit(default_branch="main")
 
-            # Upload template files
             if template:
                 template_path = os.path.join("templates", "menu", template)
                 if os.path.exists(template_path):
@@ -177,7 +182,6 @@ def run_action():
                                 except Exception as e:
                                     print(f"⚠️ خطأ أثناء رفع {relative_path}: {e}")
 
-            # Log the action
             log_entry = {
                 "timestamp": datetime.utcnow().isoformat(),
                 "action": "create_repo",
