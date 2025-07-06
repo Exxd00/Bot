@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from github import Github
 import openai
 from base64 import b64encode
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -105,11 +106,9 @@ def run_action():
         elif action == "init_repo_if_empty":
             repo_obj = g.get_user().get_repo(repo)
             try:
-                # Check if default branch exists (repo already initialized)
                 _ = repo_obj.get_branch(repo_obj.default_branch)
                 return jsonify({"message": "Repo already initialized."})
             except:
-                # Repo is empty → initialize it
                 readme_content = "# Initial Commit\n\nThis repo was initialized via API."
                 blob = repo_obj.create_git_blob(readme_content, "utf-8")
 
@@ -122,13 +121,67 @@ def run_action():
 
                 commit = repo_obj.create_git_commit("Initial commit", tree, [])
 
-                # Create main branch
                 repo_obj.create_git_ref(ref='refs/heads/main', sha=commit.sha)
-
-                # Set default branch to main
                 repo_obj.edit(default_branch="main")
 
                 return jsonify({"message": "Repo initialized with first commit on 'main'"})
+
+        elif action == "create_repo":
+            repo_name = data.get("repo")
+            private = data.get("private", True)
+            template = data.get("template", None)
+
+            user = g.get_user()
+
+            new_repo = user.create_repo(repo_name, private=private)
+
+            readme_content = f"# {repo_name}\n\nCreated via API"
+            blob = new_repo.create_git_blob(readme_content, "utf-8")
+            tree = new_repo.create_git_tree([{
+                "path": "README.md",
+                "mode": "100644",
+                "type": "blob",
+                "sha": blob.sha
+            }], base_tree=None)
+            commit = new_repo.create_git_commit("Initial commit", tree, [])
+            new_repo.create_git_ref(ref='refs/heads/main', sha=commit.sha)
+            new_repo.edit(default_branch="main")
+
+            if template:
+                template_path = os.path.join("templates", "menu", template)
+                if os.path.exists(template_path):
+                    for root, _, files in os.walk(template_path):
+                        for filename in files:
+                            full_path = os.path.join(root, filename)
+                            with open(full_path, "r", encoding="utf-8") as f:
+                                file_content = f.read()
+
+                            relative_path = os.path.relpath(full_path, template_path).replace("\\", "/")
+                            try:
+                                new_repo.create_file(relative_path, f"Add {relative_path}", file_content, branch="main")
+                            except Exception as e:
+                                print(f"خطأ أثناء رفع الملف {relative_path}: {e}")
+
+            # Log
+            log_entry = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "action": "create_repo",
+                "repo": repo_name,
+                "template": template,
+                "status": "success"
+            }
+            os.makedirs("data", exist_ok=True)
+            log_path = os.path.join("data", "logs.json")
+            if os.path.exists(log_path):
+                with open(log_path, "r", encoding="utf-8") as f:
+                    logs = json.load(f)
+            else:
+                logs = []
+            logs.append(log_entry)
+            with open(log_path, "w", encoding="utf-8") as f:
+                json.dump(logs, f, indent=2)
+
+            return jsonify({"message": f"Repo '{repo_name}' created and initialized."})
 
         return jsonify({"error": "Unknown action"}), 400
 
