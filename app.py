@@ -16,7 +16,7 @@ if os.path.exists(TOKENS_FILE_PATH):
 else:
     TEMP_TOKENS = {}
 
-# دوال المساعدة لحفظ التوكنات
+# الدوال المساعدة لحفظ التوكنات
 def save_tokens():
     os.makedirs("data", exist_ok=True)
     with open(TOKENS_FILE_PATH, "w") as f:
@@ -67,15 +67,39 @@ def run_action():
             else:
                 return jsonify({"error": "Template not found."}), 404
 
-        elif action == "list_repo_names_only":
+        elif action == "list_user_repos":
+            gh_token = get_token("GH_TOKEN")
+            if not gh_token:
+                return jsonify({"error": "GitHub token not set."}), 400
+            g = Github(gh_token)
+            user = g.get_user()
+            repos = [{"name": repo.name, "full_name": repo.full_name} for repo in user.get_repos()]
+            return jsonify({"repos": repos})
+
+        elif action == "upload_file_to_repo":
             gh_token = get_token("GH_TOKEN")
             if not gh_token:
                 return jsonify({"error": "GitHub token not set."}), 400
 
+            repo_name = data.get("repo")
+            file_path = data.get("path")
+            file_content = data.get("content")
+            commit_message = data.get("message", "Upload file")
+
+            if not all([repo_name, file_path, file_content]):
+                return jsonify({"error": "Missing parameters: repo, path, or content"}), 400
+
             g = Github(gh_token)
-            repos = g.get_user().get_repos()
-            repo_names = [repo.name for repo in repos]
-            return jsonify({"repos": repo_names})
+            repo = g.get_repo(repo_name)
+
+            # تحقق مما إذا كان الملف موجودًا مسبقًا
+            try:
+                existing_file = repo.get_contents(file_path)
+                repo.update_file(file_path, commit_message, file_content, existing_file.sha)
+                return jsonify({"message": "File updated successfully."})
+            except:
+                repo.create_file(file_path, commit_message, file_content)
+                return jsonify({"message": "File created successfully."})
 
         return jsonify({"error": "Unknown action"}), 400
 
@@ -85,8 +109,3 @@ def run_action():
 @app.route("/docs")
 def serve_docs():
     return send_from_directory("docs", "index.html")
-
-# ✅ لتشغيل التطبيق على Render:
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
