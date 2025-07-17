@@ -1,3 +1,4 @@
+import logging
 import traceback
 import os
 import json
@@ -196,7 +197,7 @@ def run_action():
         return jsonify({"error": "Unknown action"}), 400
 
     except Exception as e:
-        traceback.print_exc()
+        app.logger.error("❌ خطأ داخلي:\n" + traceback.format_exc())
         return jsonify({"error": str(e)}), 500
 
 @app.route("/docs")
