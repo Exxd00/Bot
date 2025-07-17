@@ -27,7 +27,10 @@ def get_token(name):
 
 @app.route("/run-action", methods=["POST"])
 def run_action():
-    data = request.get_json()
+    print("📌 [TRACE] Start run_action")
+    print("📌 [TRACE] Reading JSON from request")
+data = request.get_json()
+print("📌 [TRACE] JSON received:", data)
     action = data.get("action")
     repo = data.get("repo")
     path = data.get("path")
@@ -35,16 +38,19 @@ def run_action():
     token = get_token("GITHUB_TOKEN")
     api_key = request.headers.get("x-api-key")
 
-    if api_key != os.environ.get("API_KEY", "super-secret-key-123"):
+    print("📌 [TRACE] Checking API key")
+if api_key != os.environ.get("API_KEY", "super-secret-key-123"):
         return jsonify({"error": "Unauthorized"}), 403
 
     try:
-        g = Github(token)
+        print("📌 [TRACE] Initializing Github instance")
+g = Github(token)
 
         if action == "status_check":
             return jsonify({"status": "ok"})
 
         elif action == "set_token":
+            print("📌 [TRACE] Entered action: set_token")
             token_type = data.get("token_type")
             token_value = data.get("value")
             TEMP_TOKENS[token_type] = token_value
@@ -52,6 +58,7 @@ def run_action():
             return jsonify({"message": f"{token_type} set successfully."})
 
         elif action == "revoke_token":
+            print("📌 [TRACE] Entered action: revoke_token")
             token_type = data.get("token_type")
             if token_type in TEMP_TOKENS:
                 del TEMP_TOKENS[token_type]
@@ -59,6 +66,7 @@ def run_action():
             return jsonify({"message": f"{token_type} removed."})
 
         elif action == "generate_canva_link":
+            print("📌 [TRACE] Entered action: generate_canva_link")
             template = data.get("template")
             links = {
                 "smm_strategy": "https://www.canva.com/design/DAGlHUGRn4s/BK8hrc0RjN2eZQ_bVyy7xg/edit"
@@ -70,22 +78,26 @@ def run_action():
                 return jsonify({"error": "Template not found"}), 404
 
         elif action == "list_repo_names_only":
+            print("📌 [TRACE] Entered action: list_repo_names_only")
             user = g.get_user()
             repos = [repo.name for repo in user.get_repos()]
             return jsonify({"repos": repos})
 
         elif action == "list_files":
+            print("📌 [TRACE] Entered action: list_files")
             repo_obj = g.get_user().get_repo(repo)
             contents = repo_obj.get_contents("")
             file_names = [c.name for c in contents]
             return jsonify({"files": file_names})
 
         elif action == "get_file":
+            print("📌 [TRACE] Entered action: get_file")
             repo_obj = g.get_user().get_repo(repo)
             file = repo_obj.get_contents(data.get("file"))
             return jsonify({"content": file.decoded_content.decode()})
 
         elif action == "update_file":
+            print("📌 [TRACE] Entered action: update_file")
             repo_obj = g.get_user().get_repo(repo)
             try:
                 file = repo_obj.get_contents(path)
@@ -101,12 +113,14 @@ def run_action():
                     return jsonify({"error": f"Create failed: {str(ex)}"}), 500
 
         elif action == "fetch_limited_commits":
+            print("📌 [TRACE] Entered action: fetch_limited_commits")
             limit = data.get("limit", 10)
             repo_obj = g.get_user().get_repo(repo)
             commits = repo_obj.get_commits()[:limit]
             return jsonify({"commits": [c.sha for c in commits]})
 
         elif action == "init_repo_if_empty":
+            print("📌 [TRACE] Entered action: init_repo_if_empty")
             repo_obj = g.get_user().get_repo(repo)
             try:
                 _ = repo_obj.get_branch(repo_obj.default_branch)
@@ -126,6 +140,7 @@ def run_action():
                 return jsonify({"message": "Repo initialized with first commit on 'main'"})
 
         elif action == "create_repo":
+            print("📌 [TRACE] Entered action: create_repo")
             repo_name = data.get("repo")
             private = data.get("private", True)
             template = data.get("template", None)
@@ -206,6 +221,7 @@ def serve_docs():
 
 
         elif action == "upload_file":
+            print("📌 [TRACE] Entered action: upload_file")
             repo_obj = g.get_user().get_repo(repo)
             file_path = data.get("file_path")
             file_content = data.get("content")
@@ -222,6 +238,7 @@ def serve_docs():
                 return jsonify({"message": "File created"})
 
         elif action == "delete_file":
+            print("📌 [TRACE] Entered action: delete_file")
             repo_obj = g.get_user().get_repo(repo)
             file_path = data.get("file_path")
             branch = data.get("branch", "main")
@@ -235,6 +252,7 @@ def serve_docs():
 
 
         elif action == "upload_file_base64":
+            print("📌 [TRACE] Entered action: upload_file_base64")
             repo_obj = g.get_user().get_repo(repo)
             file_path = data.get("file_path")
             base64_content = data.get("base64_content")
