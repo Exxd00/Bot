@@ -1,16 +1,3 @@
 Flask
 PyGithub
 openai
-pillow
-scapy
-requests
-argparse
-pwntools
-paramiko
-impacket
-pycrypto
-cryptography
-nmap
-bs4
-shodan
-colorama
