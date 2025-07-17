@@ -200,3 +200,32 @@ def run_action():
 @app.route("/docs")
 def serve_docs():
     return send_from_directory("docs", "index.html")
+
+
+        elif action == "upload_file":
+            repo_obj = g.get_user().get_repo(repo)
+            file_path = data.get("file_path")
+            file_content = data.get("content")
+            commit_message = data.get("commit_message", "Upload file via API")
+            branch = data.get("branch", "main")
+            try:
+                # تحقق إذا الملف موجود لتحديثه
+                existing_file = repo_obj.get_contents(file_path, ref=branch)
+                repo_obj.update_file(existing_file.path, commit_message, file_content, existing_file.sha, branch=branch)
+                return jsonify({"message": "File updated"})
+            except:
+                # إن لم يكن موجودًا، أنشئه
+                repo_obj.create_file(file_path, commit_message, file_content, branch=branch)
+                return jsonify({"message": "File created"})
+
+        elif action == "delete_file":
+            repo_obj = g.get_user().get_repo(repo)
+            file_path = data.get("file_path")
+            branch = data.get("branch", "main")
+            commit_message = data.get("commit_message", "Delete file via API")
+            try:
+                existing_file = repo_obj.get_contents(file_path, ref=branch)
+                repo_obj.delete_file(existing_file.path, commit_message, existing_file.sha, branch=branch)
+                return jsonify({"message": f"File '{file_path}' deleted"})
+            except Exception as e:
+                return jsonify({"error": f"Delete failed: {str(e)}"}), 500
