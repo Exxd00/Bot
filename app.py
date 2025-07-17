@@ -25,11 +25,10 @@ def get_token(name):
     return TEMP_TOKENS.get(name) or os.environ.get(name)
 
 def initialize_repo(repo_obj):
-    """تهيئة المستودع بملف README.md إذا كان فارغًا"""
     try:
         repo_obj.create_file("README.md", "Initial commit", "# Initialized")
     except Exception:
-        pass  # المستودع قد يكون مهيأ بالفعل
+        pass
 
 @app.route("/run-action", methods=["POST"])
 def run_action():
@@ -38,9 +37,10 @@ def run_action():
         action = data.get("action")
         print(f">>> Action Received: {action}")
 
+        token = get_token("GITHUB_TOKEN")
+        g = Github(token)
+
         if action == "create_repo":
-            token = get_token("GITHUB_TOKEN")
-            g = Github(token)
             user = g.get_user()
             repo_name = data["repo"]
             repo = user.create_repo(repo_name)
@@ -48,15 +48,11 @@ def run_action():
             return jsonify({"status": "repo created", "url": repo.clone_url})
 
         elif action == "list_repo_names_only":
-            token = get_token("GITHUB_TOKEN")
-            g = Github(token)
             user = g.get_user()
             repo_names = [repo.name for repo in user.get_repos()]
             return jsonify({"repos": repo_names})
 
         elif action == "list_files":
-            token = get_token("GITHUB_TOKEN")
-            g = Github(token)
             repo = g.get_repo(data["repo"])
             branch = data.get("branch", "main")
             files = repo.get_contents("", ref=branch)
@@ -72,25 +68,29 @@ def run_action():
             return jsonify({"files": result})
 
         elif action == "get_file":
-            token = get_token("GITHUB_TOKEN")
-            g = Github(token)
             repo = g.get_repo(data["repo"])
             file = repo.get_contents(data["path"], ref=data.get("branch", "main"))
             return jsonify({"content": file.decoded_content.decode()})
 
         elif action == "update_file":
-            token = get_token("GITHUB_TOKEN")
-            g = Github(token)
             repo = g.get_repo(data["repo"])
             path = data["path"]
+            content = data["content"]
             branch = data.get("branch", "main")
-            file = repo.get_contents(path, ref=branch)
-            repo.update_file(path, data.get("message", "update via API"), data["content"], file.sha, branch=branch)
-            return jsonify({"status": "updated"})
+            message = data.get("message", "update via API")
+
+            try:
+                file = repo.get_contents(path, ref=branch)
+                repo.update_file(path, message, content, file.sha, branch=branch)
+                return jsonify({"status": "updated"})
+            except Exception as e:
+                if "404" in str(e):
+                    repo.create_file(path, message, content, branch=branch)
+                    return jsonify({"status": "created"})
+                else:
+                    raise
 
         elif action == "upload_file":
-            token = get_token("GITHUB_TOKEN")
-            g = Github(token)
             repo = g.get_repo(data["repo"])
             path = data["path"]
             content = data["content"]
