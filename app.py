@@ -96,7 +96,6 @@ def run_action():
             content = data["content"]
             branch = data.get("branch", "main")
 
-            # تحقق مما إذا كان الملف موجودًا مسبقًا
             try:
                 existing_file = repo.get_contents(path, ref=branch)
                 repo.update_file(path, "update file", content, existing_file.sha, branch=branch)
@@ -117,4 +116,5 @@ def home():
     return "Bot API is running!"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # يستخدم PORT المناسب من البيئة
+    app.run(host="0.0.0.0", port=port)         # يسمح بالوصول من الإنترنت
