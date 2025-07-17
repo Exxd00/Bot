@@ -116,5 +116,4 @@ def home():
     return "Bot API is running!"
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # يستخدم PORT المناسب من البيئة
-    app.run(host="0.0.0.0", port=port)         # يسمح بالوصول من الإنترنت
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
