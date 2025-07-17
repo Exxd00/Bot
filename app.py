@@ -39,21 +39,22 @@ def run_action():
 
         token = get_token("GITHUB_TOKEN")
         g = Github(token)
+        user = g.get_user()
+        username = user.login  # 👈 نستخدم اسم المستخدم هنا
+        full_repo = f"{username}/{data.get('repo')}"
 
         if action == "create_repo":
-            user = g.get_user()
             repo_name = data["repo"]
             repo = user.create_repo(repo_name)
             initialize_repo(repo)
             return jsonify({"status": "repo created", "url": repo.clone_url})
 
         elif action == "list_repo_names_only":
-            user = g.get_user()
             repo_names = [repo.name for repo in user.get_repos()]
             return jsonify({"repos": repo_names})
 
         elif action == "list_files":
-            repo = g.get_repo(data["repo"])
+            repo = g.get_repo(full_repo)
             branch = data.get("branch", "main")
             files = repo.get_contents("", ref=branch)
             result = []
@@ -68,12 +69,12 @@ def run_action():
             return jsonify({"files": result})
 
         elif action == "get_file":
-            repo = g.get_repo(data["repo"])
+            repo = g.get_repo(full_repo)
             file = repo.get_contents(data["path"], ref=data.get("branch", "main"))
             return jsonify({"content": file.decoded_content.decode()})
 
         elif action == "update_file":
-            repo = g.get_repo(data["repo"])
+            repo = g.get_repo(full_repo)
             path = data["path"]
             content = data["content"]
             branch = data.get("branch", "main")
@@ -91,7 +92,7 @@ def run_action():
                     raise
 
         elif action == "upload_file":
-            repo = g.get_repo(data["repo"])
+            repo = g.get_repo(full_repo)
             path = data["path"]
             content = data["content"]
             branch = data.get("branch", "main")
