@@ -229,3 +229,27 @@ def serve_docs():
                 return jsonify({"message": f"File '{file_path}' deleted"})
             except Exception as e:
                 return jsonify({"error": f"Delete failed: {str(e)}"}), 500
+
+
+        elif action == "upload_file_base64":
+            repo_obj = g.get_user().get_repo(repo)
+            file_path = data.get("file_path")
+            base64_content = data.get("base64_content")
+            commit_message = data.get("commit_message", "Upload base64 file via API")
+            branch = data.get("branch", "main")
+
+            try:
+                from base64 import b64decode
+                content_bytes = b64decode(base64_content)
+                decoded_str = content_bytes.decode("utf-8", errors="ignore")
+
+                try:
+                    existing_file = repo_obj.get_contents(file_path, ref=branch)
+                    repo_obj.update_file(existing_file.path, commit_message, decoded_str, existing_file.sha, branch=branch)
+                    return jsonify({"message": "Base64 file updated"})
+                except:
+                    repo_obj.create_file(file_path, commit_message, decoded_str, branch=branch)
+                    return jsonify({"message": "Base64 file created"})
+
+            except Exception as e:
+                return jsonify({"error": f"Failed to decode or upload base64: {str(e)}"}), 500
